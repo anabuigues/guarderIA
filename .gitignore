@@ -1,0 +1,72 @@
+# Archivos de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Entornos virtuales
+env/
+venv/
+ENV/
+.venv/
+env.bak/
+.venv.bak/
+
+# Archivos de configuración y logs
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+
+# Archivos de test coverage
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# Configuración de herramientas de análisis
+.pytest_cache/
+.tox/
+.mypy_cache/
+.dmypy.json
+.pyre/
+
+# IDEs y editores
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Archivos de Jupyter y otros notebooks
+.ipynb_checkpoints/
+
+# Archivos de paquetes
+dist/
+build/
+*.egg-info/
+.eggs/
+
+# Control de versiones (de otras herramientas)
+*.orig
+*.bak
+
+# Archivos sensibles o personales
+.env
+
+# Archivos de Docker (si usas Docker)
+*.pid
+*.pid.lock
+
+# Base de datos SQLite local
+*.sqlite3
+
+# Archivos generados por pip-tools
+*.txt # si generas requirements.txt a partir de .in
+
+# Archivos de sistema operativo
+.DS_Store
+Thumbs.db
