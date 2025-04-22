@@ -36,6 +36,30 @@ GuarderIA se basa en una arquitectura de agentes autónomos orquestada por la li
 4.  **Tareas (`tasks.py`):** Definen las instrucciones específicas que cada agente debe ejecutar, alineadas con los goals mejorados.
 5.  **Herramientas (`tools/`):** Módulos reutilizables que interactúan con APIs externas (Google Maps, búsqueda web) o realizan funciones específicas (ponderación detallada, formato).
 
+## ✨ Qué hace GuarderIA (Resumen Funcional)
+
+1. El usuario describe lo que valora en una guardería, junto con su ubicación y preferencias de transporte.
+2. El sistema busca guarderías cercanas usando Google Maps.
+3. Cada guardería es investigada online por un agente especializado (`RecolectorAgent`) de forma **persistente**, intentando superar errores de scraping.
+4. Las preferencias del usuario se convierten en pesos numéricos (`PreferenciasAgent`).
+5. Las guarderías se puntúan de forma **más detallada y robusta** según la información encontrada y los pesos del usuario (`PuntuadorAgent` usando `PonderacionTool` mejorada).
+6. El sistema recomienda la mejor opción, explicando detalladamente por qué y **siendo transparente sobre la calidad de los datos** (`RecomendadorAgent`).
+
+---
+
+## 🧩 Agentes Implementados (Resumen Técnico)
+
+| Agente               | Rol                                                                 | Tarea Principal (`tasks.py`) | Herramientas Clave (`tools/`)        |
+|----------------------|----------------------------------------------------------------------|-------------------------------|---------------------------------------|
+| `LocationAgent`      | Extrae ubicación/transporte del usuario.                             | `location_task`               | `GooglePlacesTool` (usada en `app.py`) |
+| `PreferenciasAgent`  | Convierte preferencias en texto a pesos JSON.                       | `preferencias_task`           | -                                     |
+| `RecolectorAgent`    | Investiga online **persistentemente** cada guardería y rellena perfil JSON. | `recolector_task`             | `SerperDevTool`, `ScrapeWebsiteTool`, `WebsiteSearchTool` |
+| `PuntuadorAgent`     | Calcula puntuación ponderada **detallada** usando `PonderacionTool` mejorada. | `puntuador_task`              | `PonderacionTool`                    |
+| `RecomendadorAgent`  | Genera informe Markdown final con análisis, **manejando datos pobres**. | `recomendador_task`           | `FormatterTool` (opcional)           |
+*Nota: La orquestación la maneja `CrewAI` directamente en `app.py`.*
+
+---
+
 ## 📊 Diagrama de Flujo
 
 ![Diagrama de Flujo de GuarderIA](images/diagrama.png)
@@ -132,29 +156,6 @@ streamlit run app.py
 
 ---
 
-## ✨ Qué hace GuarderIA (Resumen Funcional)
-
-1. El usuario describe lo que valora en una guardería, junto con su ubicación y preferencias de transporte.
-2. El sistema busca guarderías cercanas usando Google Maps.
-3. Cada guardería es investigada online por un agente especializado (`RecolectorAgent`) de forma **persistente**, intentando superar errores de scraping.
-4. Las preferencias del usuario se convierten en pesos numéricos (`PreferenciasAgent`).
-5. Las guarderías se puntúan de forma **más detallada y robusta** según la información encontrada y los pesos del usuario (`PuntuadorAgent` usando `PonderacionTool` mejorada).
-6. El sistema recomienda la mejor opción, explicando detalladamente por qué y **siendo transparente sobre la calidad de los datos** (`RecomendadorAgent`).
-
----
-
-## 🧩 Agentes Implementados (Resumen Técnico)
-
-| Agente               | Rol                                                                 | Tarea Principal (`tasks.py`) | Herramientas Clave (`tools/`)        |
-|----------------------|----------------------------------------------------------------------|-------------------------------|---------------------------------------|
-| `LocationAgent`      | Extrae ubicación/transporte del usuario.                             | `location_task`               | `GooglePlacesTool` (usada en `app.py`) |
-| `PreferenciasAgent`  | Convierte preferencias en texto a pesos JSON.                       | `preferencias_task`           | -                                     |
-| `RecolectorAgent`    | Investiga online **persistentemente** cada guardería y rellena perfil JSON. | `recolector_task`             | `SerperDevTool`, `ScrapeWebsiteTool`, `WebsiteSearchTool` |
-| `PuntuadorAgent`     | Calcula puntuación ponderada **detallada** usando `PonderacionTool` mejorada. | `puntuador_task`              | `PonderacionTool`                    |
-| `RecomendadorAgent`  | Genera informe Markdown final con análisis, **manejando datos pobres**. | `recomendador_task`           | `FormatterTool` (opcional)           |
-*Nota: La orquestación la maneja `CrewAI` directamente en `app.py`.*
-
----
 
 ## 📬 Contribuciones
 
