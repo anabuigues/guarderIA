@@ -49,10 +49,12 @@ class GuarderiaTasks:
         return Task(
             description=f"""
             Investiga y completa el perfil detallado de la guardería '{nombre}' en '{direccion}'.
-            {url_info} Sigue el flujo de trabajo indicado en tu `goal` (prioriza scraping si hay URL, busca si no la hay o falta info, etc.).
+            {url_info} Sigue el flujo de trabajo **persistente y recursivo** indicado en tu `goal`:
+            - Prioriza scraping si hay URL. Si falla, ¡NO TE RINDAS!, usa herramientas de búsqueda para info específica (tarifas, horario, equipo...). 
+            - Si no hay URL o faltan datos, usa búsqueda web estratégica (`SerperDevTool`, `WebsiteSearchTool`) y luego scraping dirigido si encuentras URLs prometedoras.
+            - Intenta extraer valores estructurados (booleanos, números, listas) siempre que sea posible.
             
-            El objetivo final es completar todos los campos del siguiente JSON usando información fiable (web oficial, Google, reseñas).
-            Si un dato no está disponible tras investigar, déjalo vacío ('') o como `false` si es booleano. No inventes datos.
+            El objetivo final es completar todos los campos del siguiente JSON usando información fiable. Si un dato es imposible de encontrar tras investigar razonablemente, déjalo vacío ('') o como `false`.
 
             Formato JSON esperado a rellenar:
             {{
@@ -61,7 +63,7 @@ class GuarderiaTasks:
                 "website": "{website_url if website_url else ''}", // Intentar confirmar o encontrar la URL correcta
                 "instalaciones": {{ "espacios": "", "patio": false, "aulas_especificas": "" }},
                 "horario": {{ "apertura": "", "cierre": "", "flexibilidad": "" }},
-                "ratio_ninos_cuidadores": {{ "0-1": "", "1-2": "", "2-3": "" }},
+                "ratio_ninos_cuidadores": {{ "0-1": "", "1-2": "", "2-3": "" }}, // Intentar poner números si es posible
                 "idiomas": [], // Lista de idiomas ofrecidos
                 "alimentacion": {{ "cocina_propia": false, "comida_saludable": false, "menu_adaptable": false, "blw_ofrecido": false }},
                 "necesidades_individuales": {{ "periodo_adaptacion_flexible": false, "protocolo_siesta": "" }},
@@ -69,13 +71,13 @@ class GuarderiaTasks:
                 "actividades": {{ "programa_actividades": "", "tiempo_aire_libre_diario": false, "huerto_ecologico": false, "excursiones_regulares": false }},
                 "tecnologia": {{ "uso_en_aula": "", "app_comunicacion_padres": false }},
                 "pedagogia": {{ "metodo_principal": "", "principios_clave": "" }},
-                "precio": {{ "mensualidad_base": "", "comedor": "", "extras": "" }},
+                "precio": {{ "mensualidad_base": "", "comedor": "", "extras": "" }}, // Intentar poner número en mensualidad_base
                 "reseñas_externas": {{ "google_maps_rating": "", "num_reseñas": "", "resumen_sentimiento": "" }}
             }}
 
             Devuelve **solo** el bloque JSON completado, sin ningún texto adicional antes o después.
             """,
-            expected_output="Un único bloque JSON válido con la ficha detallada de la guardería completada.",
+            expected_output="Un único bloque JSON válido con la ficha detallada de la guardería completada, intentando rellenar con valores estructurados (booleanos, números, listas) cuando sea posible.",
             agent=agent
             # async_execution=True # Mantenemos la ejecución asíncrona si es posible
         )
@@ -113,29 +115,22 @@ class GuarderiaTasks:
     def recomendador_task(self, agent, context):
         # Esta tarea depende del contexto (outputs de t_puntuador y t_preferencias)
         return Task(
-            # Descripción aún más específica sobre iterar y formatear
-            description=f"""Analizar en profundidad la lista de guarderías puntuadas y las preferencias del usuario para generar un informe final CLARO, DETALLADO y ÚTIL en formato Markdown. 
+            description=f"""Analizar en profundidad la lista de guarderías puntuadas y las preferencias del usuario para generar un informe final CLARO, DETALLADO y ÚTIL en formato Markdown. Sigue el proceso detallado y adaptativo de tu `goal`.
             
             Input Clave (Contexto):
-            - Resultado de 'puntuador_task': Una lista de diccionarios, cada uno con 'nombre', 'score', y 'detalles_puntuacion' para una guardería.
-            - Resultado de 'preferencias_task': Un JSON con los pesos de los criterios del usuario (donde 5 es muy importante).
+            - Resultado de 'puntuador_task': Lista de diccionarios (`nombre`, `score`, `detalles_puntuacion`).
+            - Resultado de 'preferencias_task': JSON con pesos de criterios.
             
-            Proceso Detallado:
-            1. **Identifica la Mejor Opción:** Determina la guardería con el `score` más alto.
-            2. **Analiza CADA Guardería (o las Top 2-3):** Para cada una:
-                a. Presenta el nombre (negrita) y la puntuación general (`score`).
-                b. **Destaca Criterios Clave:** Revisa `detalles_puntuacion`. Menciona específicamente cómo puntúa en los criterios que el usuario marcó como importantes (peso 5 en preferencias). Indica si la puntuación es buena, mala o si falta información para ese criterio crucial.
-                c. **Resume Pros:** Extrae 2-3 puntos fuertes claros (ej., buena puntuación en criterio importante, característica positiva encontrada como 'patio=True', 'cocina_propia=True').
-                d. **Resume Contras/Faltantes:** Extrae 2-3 puntos débiles o información clave que no se encontró (ej., baja puntuación en criterio importante, 'ratio_ninos_cuidadores' vacío, 'patio=False' si era importante).
-            3. **Conclusión Comparativa:** Escribe un párrafo final:
-                a. Reitera cuál es la guardería recomendada (la de mayor puntuación).
-                b. Explica BREVEMENTE por qué es la mejor opción en base al análisis anterior, conectando sus puntos fuertes con las preferencias del usuario.
-                c. Si hay otras opciones cercanas en puntuación o con puntos fuertes específicos, menciónalo brevemente.
-            4. **Formato Markdown:** Estructura TODO el informe usando Markdown de forma clara (títulos, listas, negrita). Puedes usar `FormatterTool` si te ayuda a organizar la información.
-            5. **Output:** Devuelve ÚNICAMENTE el informe final en formato Markdown.
+            Proceso Clave:
+            1. Analiza las puntuaciones (`score` y `detalles_puntuacion` con sus `justificacion`).
+            2. **Si los datos son pobres** (scores bajos, muchas justificaciones de "no encontrado"), **indícalo claramente** en el informe y recomienda verificación manual, pero aun así presenta el análisis de lo encontrado.
+            3. Destaca pros/contras basándote en los criterios importantes (peso 5) y las `puntuacion_base` / `justificacion`.
+            4. Escribe una conclusión comparativa y justificada.
+            5. Formatea todo en Markdown claro (puedes usar `FormatterTool`).
+            
+            Output: Devuelve ÚNICAMENTE el informe final en formato Markdown.
             """,
-            # Expected output refleja el formato detallado
-            expected_output="Un informe detallado en formato Markdown. Debe incluir un análisis por guardería (puntuación, pros/contras basados en preferencias del usuario) y una conclusión final comparativa con la recomendación justificada.",
+            expected_output="Un informe detallado en formato Markdown. Debe incluir un análisis por guardería (puntuación, pros/contras basados en preferencias y datos disponibles) y una conclusión final comparativa con la recomendación justificada. **Si los datos eran limitados, el informe debe reflejarlo honestamente.**",
             context=context,
             agent=agent
         )

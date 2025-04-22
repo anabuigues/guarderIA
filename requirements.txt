@@ -1,13 +1,13 @@
 # Core Application & Framework
 streamlit==1.44.1
-crewai==0.114.0
-crewai-tools==0.40.1
+crewai
+crewai-tools
 
 # Langchain & OpenAI
-langchain==0.3.23
-langchain-core==0.3.52
-langchain-community==0.3.21
-langchain-openai==0.2.7
+langchain
+langchain-core
+langchain-community
+langchain-openai
 openai==1.74.0
 
 # Custom Tools Dependencies
@@ -16,5 +16,5 @@ googlemaps==4.10.0
 # Utilities
 python-dotenv==1.1.0
 pydantic==2.11.3
-requests==2.3.23 # Likely needed by web tools/langchain
+requests==2.32.3 # Likely needed by web tools/langchain
 beautifulsoup4==4.13.4 # Likely needed for scraping
